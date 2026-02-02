@@ -1,0 +1,10 @@
+Avoid using tables and text boxes because ATS systems cannot read them properly.
+Use simple fonts such as Arial, Calibri, or Times New Roman.
+Do not use images, icons, or graphics in your resume.
+Use standard headings like Experience, Education, Skills, and Projects.
+Save your resume as a PDF or DOCX file.
+Avoid using headers and footers for important information.
+Use a single-column layout for better ATS parsing.
+Do not use excessive formatting like multiple colors or fancy designs.
+Ensure your contact information is in plain text.
+Avoid using special characters or symbols that ATS cannot recognize.
