@@ -7,3 +7,9 @@ AI-powered resume analysis and improvement tool using RAG pipeline.
 - Semantic resume analysis
 - ATS compatibility scoring
 - Rule-based suggestions
+
+## Installation
+
+```bash
+pip install -r requirements.txt
+```
