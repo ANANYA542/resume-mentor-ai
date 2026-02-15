@@ -31,3 +31,7 @@ pytest
 ## License
 
 MIT License
+
+## Usage
+
+See [docs/usage.md](docs/usage.md) for detailed instructions.
