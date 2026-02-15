@@ -13,3 +13,7 @@ AI-powered resume analysis and improvement tool using RAG pipeline.
 ```bash
 pip install -r requirements.txt
 ```
+
+## Usage
+
+See [docs/usage.md](docs/usage.md) for detailed instructions.
