@@ -33,11 +33,14 @@ class RAGEngine:
         print("FAISS index built successfully.")
 
     def search(self, query, k=5):
-        query_embedding = self.model.encode([query])
+        query_embedding = self.model.encode([query], normalize_embeddings=True)
         distances, indices = self.index.search(query_embedding, k)
 
         results = []
-        for idx in indices[0]:
-            results.append(self.text_chunks[idx])
+        for dist, idx in zip(distances[0], indices[0]):
+            results.append({
+                "text": self.text_chunks[idx],
+                "score": float(dist)
+            })
 
         return results
