@@ -1,13 +1,26 @@
 import os
-import faiss
-from sentence_transformers import SentenceTransformer
 
 class RAGEngine:
     def __init__(self):
-        # This model converts text → vectors
-        self.model = SentenceTransformer("all-MiniLM-L6-v2")
+        # Lazy-loaded to keep the core app usable even if
+        # local embedding/native deps (faiss/torch) are unavailable.
+        self._model = None
+        self._model_name = "all-MiniLM-L6-v2"
         self.text_chunks = []
         self.index = None
+
+    def _get_model(self):
+        if self._model is not None:
+            return self._model
+        from sentence_transformers import SentenceTransformer  # local import
+
+        self._model = SentenceTransformer(self._model_name)
+        return self._model
+
+    def _faiss(self):
+        import faiss  # local import
+
+        return faiss
 
     def load_data(self, data_dir="data"):
         chunks = []
@@ -21,25 +34,37 @@ class RAGEngine:
                         chunks.append(line)
 
         self.text_chunks = chunks
-        print(f"Loaded {len(chunks)} knowledge chunks.")
+        return len(chunks)
 
     def build_index(self):
-        embeddings = self.model.encode(self.text_chunks)
+        if not self.text_chunks:
+            raise ValueError("No data loaded. Call load_data() first.")
+
+        # Use cosine similarity via inner product by normalizing embeddings.
+        model = self._get_model()
+        embeddings = model.encode(self.text_chunks, normalize_embeddings=True)
         dimension = embeddings.shape[1]
 
-        self.index = faiss.IndexFlatL2(dimension)
+        faiss = self._faiss()
+        self.index = faiss.IndexFlatIP(dimension)
         self.index.add(embeddings)
-
-        print("FAISS index built successfully.")
+        return self.index.ntotal
 
     def search(self, query, k=5):
-        query_embedding = self.model.encode([query], normalize_embeddings=True)
+        if self.index is None:
+            raise ValueError("Index not built. Call build_index() first.")
+
+        model = self._get_model()
+        query_embedding = model.encode([query], normalize_embeddings=True)
         distances, indices = self.index.search(query_embedding, k)
 
         results = []
         for dist, idx in zip(distances[0], indices[0]):
+            if idx < 0:
+                continue
             results.append({
                 "text": self.text_chunks[idx],
+                # Cosine similarity in [-1, 1]; higher is better.
                 "score": float(dist)
             })
 

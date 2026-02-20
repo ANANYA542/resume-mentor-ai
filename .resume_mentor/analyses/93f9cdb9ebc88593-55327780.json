@@ -1,0 +1,45 @@
+{
+  "analysis_id": "93f9cdb9ebc88593-55327780",
+  "created_at": "2026-04-15T06:14:52.578825Z",
+  "issues": [],
+  "retrieved_rules": [],
+  "score": {
+    "overall": 54,
+    "formatting": 100,
+    "content": 11,
+    "ats_match": 50
+  },
+  "feedback": {
+    "strengths": [
+      "Resume appears ATS-friendly in basic formatting (no obvious layout blockers found)."
+    ],
+    "weaknesses": [
+      "Bullet content is light on measurable impact (numbers, outcomes, scope).",
+      "Keyword alignment with the job description is moderate/low."
+    ],
+    "suggestions": [
+      "Rewrite bullets to include action + scope + impact (numbers where possible).",
+      "Add missing job-relevant keywords where truthfully applicable (skills/tools/domain terms)."
+    ]
+  },
+  "skill_gap": {
+    "missing_skills": [
+      "python",
+      "optimization"
+    ],
+    "matched_skills": [
+      "fastapi",
+      "latency"
+    ]
+  },
+  "bullet_rewrites": [],
+  "resume_summary": {
+    "sections_detected": [
+      "unknown"
+    ],
+    "skills_detected": [
+      "fastapi"
+    ],
+    "bullets_detected": 0
+  }
+}
