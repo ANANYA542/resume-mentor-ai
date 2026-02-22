@@ -21,3 +21,9 @@ See [docs/usage.md](docs/usage.md) for detailed instructions.
 ## Usage
 
 See [docs/usage.md](docs/usage.md) for detailed instructions.
+
+## Testing
+
+```bash
+pytest
+```
