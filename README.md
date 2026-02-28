@@ -27,3 +27,7 @@ See [docs/usage.md](docs/usage.md) for detailed instructions.
 ```bash
 pytest
 ```
+
+## License
+
+MIT License
