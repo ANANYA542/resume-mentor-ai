@@ -24,6 +24,8 @@ SECTION_HEADERS = [
 
 def normalize_whitespace(text: str) -> str:
     text = text.replace("\r\n", "\n").replace("\r", "\n")
+    text = re.sub(r"[ \t]+", " ", text)
+    text = re.sub(r" *\n *", "\n", text)
     text = re.sub(r"[ \t]+\n", "\n", text)
     text = re.sub(r"\n{3,}", "\n\n", text)
     return text.strip()
@@ -35,8 +37,9 @@ def extract_bullets(text: str, max_bullets: int = 40) -> list[str]:
         s = line.strip()
         if not s:
             continue
-        if re.match(r"^(\-|\*|•|\u2022)\s+", s):
-            bullets.append(re.sub(r"^(\-|\*|•|\u2022)\s+", "", s).strip())
+        match = re.match(r"^(?:[-*•\u2022]|\d+[.)])\s+(.+)$", s)
+        if match:
+            bullets.append(match.group(1).strip())
     return bullets[:max_bullets]
 
 
@@ -92,48 +95,57 @@ def extract_skills(text: str) -> list[str]:
     t = normalize_whitespace(text)
     skills: set[str] = set()
 
-    # skill-y tokens and abbreviations; intentionally small and extendable
-    vocab = {
-        "python",
-        "java",
-        "javascript",
-        "typescript",
-        "react",
-        "node",
-        "fastapi",
-        "flask",
-        "django",
-        "sql",
-        "postgres",
-        "mysql",
-        "mongodb",
-        "docker",
-        "kubernetes",
-        "aws",
-        "gcp",
-        "azure",
-        "git",
-        "ci/cd",
-        "linux",
-        "pandas",
-        "numpy",
-        "scikit-learn",
-        "pytorch",
-        "tensorflow",
-        "nlp",
-        "llm",
-        "faiss",
-        "streamlit",
+    vocab_patterns: dict[str, str] = {
+        "python": r"\bpython\b",
+        "java": r"\bjava\b",
+        "javascript": r"\bjavascript\b",
+        "typescript": r"\btypescript\b",
+        "react": r"\breact\b",
+        "node": r"\bnode\b",
+        "fastapi": r"\bfastapi\b",
+        "flask": r"\bflask\b",
+        "django": r"\bdjango\b",
+        "sql": r"\bsql\b",
+        "postgresql": r"\bpostgresql\b",
+        "postgres": r"\bpostgres\b",
+        "mysql": r"\bmysql\b",
+        "mongodb": r"\bmongodb\b",
+        "docker": r"\bdocker\b",
+        "kubernetes": r"\bkubernetes\b",
+        "aws": r"\baws\b",
+        "gcp": r"\bgcp\b",
+        "azure": r"\bazure\b",
+        "git": r"\bgit\b",
+        "ci/cd": r"\bci/cd\b",
+        "linux": r"\blinux\b",
+        "pandas": r"\bpandas\b",
+        "numpy": r"\bnumpy\b",
+        "scikit-learn": r"\bscikit-learn\b",
+        "pytorch": r"\bpytorch\b",
+        "tensorflow": r"\btensorflow\b",
+        "nlp": r"\bnlp\b",
+        "llm": r"\bllm\b",
+        "faiss": r"\bfaiss\b",
+        "streamlit": r"\bstreamlit\b",
+    }
+
+    extra_patterns = {
+        "c++": r"\bc\+\+\b",
+        "c#": r"\bc#\b",
+        "rest api": r"\brest api\b",
+        "rest": r"\brest\b",
+        "graphql": r"\bgraphql\b",
+        "jwt": r"\bjwt\b",
     }
 
     def add_from_text(blob: str):
         low = blob.lower()
-        for v in vocab:
-            if v in low:
-                skills.add(v)
-        # capture patterns like "C++", "C#", "REST API"
-        for m in re.findall(r"\b(c\+\+|c#|rest api|rest|graphql|jwt)\b", low):
-            skills.add(m)
+        for skill_name, pattern in vocab_patterns.items():
+            if re.search(pattern, low):
+                skills.add(skill_name)
+        for skill_name, pattern in extra_patterns.items():
+            if re.search(pattern, low):
+                skills.add(skill_name)
 
     # prioritize skills-like sections
     for name, content in split_sections(t):
@@ -142,4 +154,3 @@ def extract_skills(text: str) -> list[str]:
 
     add_from_text(t)
     return sorted(skills)
-

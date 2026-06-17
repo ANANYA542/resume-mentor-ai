@@ -9,17 +9,17 @@ def detect_formatting_issues(resume_text: str) -> list[str]:
     text = resume_text.lower()
     issues: list[str] = []
 
-    if "canva" in text:
+    if re.search(r"\bcanva\b", text):
         issues.append("Uses Canva formatting")
-    if "icon" in text or "image" in text or "graphic" in text:
+    if re.search(r"\bicons?\b", text) or re.search(r"\bimages?\b", text) or re.search(r"\bgraphics?\b", text):
         issues.append("Uses images or icons")
-    if "table" in text:
+    if re.search(r"\btables?\b", text):
         issues.append("Uses tables for layout")
-    if "text box" in text or "textbox" in text:
+    if re.search(r"\btext box\b", text) or re.search(r"\btextbox\b", text):
         issues.append("Uses text boxes")
-    if "header" in text or "footer" in text:
+    if re.search(r"\bheaders?\b", text) or re.search(r"\bfooters?\b", text):
         issues.append("Important info may be in headers/footers")
-    if "png" in text or "jpg" in text:
+    if re.search(r"\bpng\b", text) or re.search(r"\bjpg\b", text):
         issues.append("Mentions image formats (PNG/JPG) instead of PDF/DOCX")
 
     return issues
@@ -32,12 +32,20 @@ def _tokenize(text: str) -> list[str]:
     return [w for w in t.split(" ") if len(w) >= 2]
 
 
-def keyword_match_score(resume_text: str, job_description: str) -> tuple[int, list[str], list[str]]:
+@dataclass(frozen=True)
+class KeywordMatchResult:
+    score: int
+    matched: list[str]
+    missing: list[str]
+    total_jd_keywords: int
+
+
+def keyword_match_score(resume_text: str, job_description: str) -> KeywordMatchResult:
     """
-    Returns (0-100, matched_keywords, missing_keywords) using lightweight keyword overlap.
+    Returns a lightweight keyword-overlap result.
     """
     if not job_description or not job_description.strip():
-        return 0, [], []
+        return KeywordMatchResult(score=0, matched=[], missing=[], total_jd_keywords=0)
 
     r = set(_tokenize(resume_text))
     jd_tokens = _tokenize(job_description)
@@ -56,14 +64,19 @@ def keyword_match_score(resume_text: str, job_description: str) -> tuple[int, li
         jd.append(w)
 
     if not jd:
-        return 0, [], []
+        return KeywordMatchResult(score=0, matched=[], missing=[], total_jd_keywords=0)
 
     matched = [w for w in jd if w in r]
     missing = [w for w in jd if w not in r]
 
     raw = len(matched) / max(1, len(jd))
     score = int(round(100 * raw))
-    return score, matched[:60], missing[:60]
+    return KeywordMatchResult(
+        score=score,
+        matched=matched[:60],
+        missing=missing[:60],
+        total_jd_keywords=len(jd),
+    )
 
 
 def formatting_score(issues: list[str]) -> int:
@@ -101,4 +114,3 @@ def content_score(resume_text: str) -> int:
 def combine_scores(formatting: int, content: int, ats_match: int) -> int:
     overall = int(round(0.35 * formatting + 0.35 * content + 0.30 * ats_match))
     return max(0, min(100, overall))
-

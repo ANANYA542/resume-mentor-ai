@@ -7,6 +7,7 @@ class RAGEngine:
         self._model = None
         self._model_name = "all-MiniLM-L6-v2"
         self.text_chunks = []
+        self._index = None
         self.index = None
 
     def _get_model(self):
@@ -26,7 +27,11 @@ class RAGEngine:
         chunks = []
 
         for file in os.listdir(data_dir):
+            if not file.lower().endswith(".txt"):
+                continue
             path = os.path.join(data_dir, file)
+            if not os.path.isfile(path):
+                continue
             with open(path, "r", encoding="utf-8") as f:
                 for line in f:
                     line = line.strip()
@@ -38,7 +43,7 @@ class RAGEngine:
 
     def build_index(self):
         if not self.text_chunks:
-            raise ValueError("No data loaded. Call load_data() first.")
+            raise RuntimeError("No data loaded. Call load_data() first.")
 
         # Use cosine similarity via inner product by normalizing embeddings.
         model = self._get_model()
@@ -46,17 +51,20 @@ class RAGEngine:
         dimension = embeddings.shape[1]
 
         faiss = self._faiss()
-        self.index = faiss.IndexFlatIP(dimension)
-        self.index.add(embeddings)
-        return self.index.ntotal
+        self._index = faiss.IndexFlatIP(dimension)
+        self.index = self._index
+        self._index.add(embeddings)
+        return self._index.ntotal
 
     def search(self, query, k=5):
-        if self.index is None:
-            raise ValueError("Index not built. Call build_index() first.")
+        if not query or not str(query).strip():
+            return []
+        if self._index is None:
+            raise RuntimeError("Index not built. Call build_index() first.")
 
         model = self._get_model()
         query_embedding = model.encode([query], normalize_embeddings=True)
-        distances, indices = self.index.search(query_embedding, k)
+        distances, indices = self._index.search(query_embedding, k)
 
         results = []
         for dist, idx in zip(distances[0], indices[0]):

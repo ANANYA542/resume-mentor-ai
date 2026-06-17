@@ -1,21 +1,21 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Literal
+from typing import Any, Literal, Optional
 
 from pydantic import BaseModel, Field
 
 
 class ApiResponse(BaseModel):
     ok: bool
-    data: Any | None = None
-    error: str | None = None
+    data: Optional[Any] = None
+    error: Optional[str] = None
 
 
 class ResumeInput(BaseModel):
-    resume_text: str | None = Field(default=None, description="Raw resume text.")
-    job_description: str | None = Field(default=None, description="Optional job description text.")
-    resume_pdf_path: str | None = Field(
+    resume_text: Optional[str] = Field(default=None, description="Raw resume text.")
+    job_description: Optional[str] = Field(default=None, description="Optional job description text.")
+    resume_pdf_path: Optional[str] = Field(
         default=None,
         description="Optional local path to a PDF resume (server-side). Prefer resume_text for API usage.",
     )
@@ -45,17 +45,19 @@ class Feedback(BaseModel):
     strengths: list[str] = []
     weaknesses: list[str] = []
     suggestions: list[str] = []
+    quick_wins: list[str] = []
 
 
 class SkillGap(BaseModel):
     missing_skills: list[str] = []
     matched_skills: list[str] = []
+    match_percentage: float = 0.0
 
 
 class BulletRewrite(BaseModel):
     original: str
     rewritten: str
-    rationale: str | None = None
+    rationale: Optional[str] = None
 
 
 class AnalysisResult(BaseModel):
@@ -65,7 +67,6 @@ class AnalysisResult(BaseModel):
     retrieved_rules: list[dict[str, Any]] = []
     score: ScoreBreakdown
     feedback: Feedback
-    skill_gap: SkillGap | None = None
+    skill_gap: Optional[SkillGap] = None
     bullet_rewrites: list[BulletRewrite] = []
     resume_summary: dict[str, Any] = {}
-
